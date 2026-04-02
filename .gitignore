@@ -1,0 +1,47 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Test binary
+*.test
+
+# Output of go build
+*.out
+
+# Go workspace file
+go.work
+
+# Dependency directories (if vendored)
+vendor/
+
+# IDE/editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+
+# Environment variables
+.env
+
+# Coverage files
+coverage.out
+
+# Go build cache (optional)
+*.cache
+
+# Temporary files
+tmp/
+temp/
+
+# Profiling data
+*.prof
