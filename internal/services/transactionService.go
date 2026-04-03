@@ -25,11 +25,10 @@ func (s *TransactionService) CreateTransaction(
 	tx *models.Transaction,
 ) error {
 
-	if actor.Role != "admin" {
-		return errors.New("only admin can create transactions")
+	if !policy.CanManageTransaction(actor) {
+		return errors.New("forbidden")
 	}
 
-	tx.UserID = actor.ID
 	if tx.Amount <= 0 {
 		return errors.New("amount must be positive")
 	}
@@ -43,22 +42,22 @@ func (s *TransactionService) DeleteTransaction(
 	id string,
 ) error {
 
-	if actor.Role != "admin" {
-		return errors.New("only admin can delete transactions")
+	if !policy.CanManageTransaction(actor) {
+		return errors.New("forbidden")
 	}
 
 	return s.repo.Delete(ctx, id)
 }
+
 func (s *TransactionService) GetTransaction(
 	ctx context.Context,
 	actor policy.User,
 	id string,
 ) error {
 
-	if actor.Role != "admin" {
-		return errors.New("only admin can delete transactions")
+	if !policy.CanViewTransaction(actor) {
+		return errors.New("forbidden")
 	}
-
 	return s.repo.Delete(ctx, id)
 }
 func (s *TransactionService) UpdateTransaction(
@@ -67,8 +66,8 @@ func (s *TransactionService) UpdateTransaction(
 	id string,
 ) error {
 
-	if actor.Role != "admin" {
-		return errors.New("only admin can delete transactions")
+	if !policy.CanManageTransaction(actor) {
+		return errors.New("forbidden")
 	}
 
 	return s.repo.Delete(ctx, id)
@@ -80,8 +79,8 @@ func (s *TransactionService) ListTransaction(
 	id string,
 ) error {
 
-	if actor.Role != "admin" {
-		return errors.New("only admin can delete transactions")
+	if !policy.CanViewTransaction(actor) {
+		return errors.New("forbidden")
 	}
 
 	return s.repo.Delete(ctx, id)
