@@ -1,5 +1,5 @@
 // internal/lib/auth/jwt_manager.go
-package auth
+package utils
 
 import (
 	"errors"

@@ -27,8 +27,7 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	if err := c.BodyParser(&body); err != nil {
 		return c.Status(400).JSON(fiber.Map{
-			"error": "invalid request body",
-		})
+			"error": "invalid request body"})
 	}
 
 	body.Email = strings.ToLower(strings.TrimSpace(body.Email))

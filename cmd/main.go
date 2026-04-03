@@ -2,9 +2,9 @@ package main
 
 import (
 	"finance-processing/internal/config"
-	db "finance-processing/internal/database"
+	"finance-processing/internal/database"
 	"finance-processing/internal/handlers"
-	auth "finance-processing/internal/lib/utils"
+	"finance-processing/internal/lib/utils"
 	"finance-processing/internal/middleware"
 	"finance-processing/internal/repository"
 	"finance-processing/internal/routes"
@@ -25,17 +25,17 @@ func main() {
 		logger.Fatal().Err(err).Msg("failed to load config")
 	}
 
-	gormDB, err := db.Connect(cfg.DB.URL, logger)
+	gormDB, err := database.Connect(cfg.DB.URL, logger)
 	if err != nil {
 		logger.Fatal().Err(err).Msg("failed to connect database")
 	}
 
-	if err := db.RunMigrations(cfg.DB.URL, logger); err != nil {
+	if err := database.RunMigrations(cfg.DB.URL, logger); err != nil {
 		logger.Fatal().Err(err).Msg("migration failed")
 	}
 
 	repos := repository.NewRepositories(gormDB)
-	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret)
+	jwtManager := utils.NewJWTManager(cfg.Auth.JWTSecret)
 
 	svcs := services.NewServices(repos, jwtManager)
 	h := handlers.NewHandlers(svcs)

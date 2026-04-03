@@ -18,20 +18,16 @@ func NewUserService(r *repository.UserRepository) *UserService {
 }
 
 func (s *UserService) CreateUser(ctx context.Context, actor policy.User, user *models.User) error {
-
 	if !policy.CanCreateUser(actor) {
 		return errors.New("forbidden")
 	}
-
 	if user.Password == "" || user.Email == "" {
 		return errors.New("invalid input")
 	}
-
 	hashed, err := auth.EncryptPassWord(user.Password)
 	if err != nil {
 		return err
 	}
-
 	user.Password = string(hashed)
 	return s.repo.Create(ctx, user)
 }
@@ -57,11 +53,10 @@ func (s *UserService) ListAnalysts(ctx context.Context, actor policy.User) ([]mo
 	if !policy.CanManageUsers(actor) {
 		return nil, errors.New("forbidden")
 	}
-	return s.repo.ListByRole(ctx, "analyst") // ✅ FIXED
+	return s.repo.ListByRole(ctx, "analyst")
 }
 
 func (s *UserService) ListViewers(ctx context.Context, actor policy.User) ([]models.User, error) {
-
 	if !policy.CanManageUsers(actor) {
 		return nil, errors.New("forbidden")
 	}

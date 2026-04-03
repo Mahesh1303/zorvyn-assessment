@@ -1,4 +1,4 @@
-package db
+package database
 
 import (
 	"fmt"
@@ -21,7 +21,7 @@ func Connect(url string, log zerolog.Logger) (*gorm.DB, error) {
 		return nil, fmt.Errorf("failed to open db: %w", err)
 	}
 
-	// verify connection
+	// verifying the db connection
 	sqlDB, err := db.DB()
 	if err != nil {
 		return nil, fmt.Errorf("failed to get sql.DB: %w", err)
