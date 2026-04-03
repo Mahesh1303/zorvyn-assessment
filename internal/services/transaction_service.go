@@ -32,6 +32,7 @@ func (s *TransactionService) CreateTransaction(
 	if tx.Amount <= 0 {
 		return errors.New("amount must be positive")
 	}
+	tx.CreatedBy = actor.ID
 
 	return s.repo.CreateTransaction(ctx, tx)
 }
@@ -53,35 +54,37 @@ func (s *TransactionService) GetTransaction(
 	ctx context.Context,
 	actor policy.User,
 	id string,
-) error {
+) (*models.Transaction, error) {
 
 	if !policy.CanViewTransaction(actor) {
-		return errors.New("forbidden")
+		return nil, errors.New("forbidden")
 	}
-	return s.repo.Delete(ctx, id)
+	return s.repo.GetTransactionByID(ctx, id)
 }
+
 func (s *TransactionService) UpdateTransaction(
 	ctx context.Context,
 	actor policy.User,
 	id string,
-) error {
+	updates map[string]any,
+) (*models.Transaction, error) {
 
 	if !policy.CanManageTransaction(actor) {
-		return errors.New("forbidden")
+		return nil, errors.New("forbidden")
 	}
 
-	return s.repo.Delete(ctx, id)
+	return s.repo.UpdateTransaction(ctx, id, updates)
 }
 
 func (s *TransactionService) ListTransaction(
 	ctx context.Context,
 	actor policy.User,
-	id string,
-) error {
+	filter repository.RecordFilter,
+) ([]*models.Transaction, error) {
 
 	if !policy.CanViewTransaction(actor) {
-		return errors.New("forbidden")
+		return nil, errors.New("forbidden")
 	}
 
-	return s.repo.Delete(ctx, id)
+	return s.repo.ListTransactions(ctx, filter)
 }

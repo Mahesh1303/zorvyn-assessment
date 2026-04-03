@@ -12,6 +12,8 @@ type RecordFilter struct {
 	Category string
 	From     string
 	To       string
+	Limit    int
+	Offset   int
 }
 
 type TransactionRepository struct {
@@ -36,7 +38,6 @@ func (r *TransactionRepository) ListTransactions(ctx context.Context, filter Rec
 	var records []*models.Transaction
 
 	q := r.db.WithContext(ctx)
-
 	if filter.Type != "" {
 		q = q.Where("type = ?", filter.Type)
 	}
@@ -49,7 +50,6 @@ func (r *TransactionRepository) ListTransactions(ctx context.Context, filter Rec
 	if filter.To != "" {
 		q = q.Where("date <= ?", filter.To)
 	}
-
 	err := q.Order("date desc").Find(&records).Error
 	return records, err
 }

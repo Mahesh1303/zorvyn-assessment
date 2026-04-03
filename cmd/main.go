@@ -37,9 +37,9 @@ func main() {
 	repos := repository.NewRepositories(gormDB)
 	jwtManager := auth.NewJWTManager(cfg.Auth.JWTSecret)
 
-	svcs := services.NewServices(repos,jwtManager)
+	svcs := services.NewServices(repos, jwtManager)
 	h := handlers.NewHandlers(svcs)
-	mw := middleware.NewMiddleware(repos.User, logger)
+	mw := middleware.NewMiddleware(repos.User, jwtManager, logger)
 
 	routes.RegisterRoutes(app, h, mw)
 

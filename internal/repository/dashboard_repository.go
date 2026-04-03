@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"finance-processing/internal/models"
 
 	"gorm.io/gorm"
 )
@@ -72,4 +73,22 @@ func (r *DashboardRepository) GetMonthlyTrends(ctx context.Context) ([]*MonthlyT
 		Limit(12).
 		Scan(&trends).Error
 	return trends, err
+}
+
+func (r *DashboardRepository) GetRecent(
+	ctx context.Context,
+	limit int,
+	offset int,
+) ([]models.Transaction, error) {
+
+	var txs []models.Transaction
+
+	err := r.db.WithContext(ctx).
+		Where("deleted_at IS NULL").
+		Order("date DESC").
+		Limit(limit).
+		Offset(offset).
+		Find(&txs).Error
+
+	return txs, err
 }

@@ -16,24 +16,15 @@ const (
 )
 
 type User struct {
-	ID        uuid.UUID      `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
-	Name      string         `gorm:"not null"                                       json:"name"`
-	Email     string         `gorm:"uniqueIndex;not null"                           json:"email"`
-	Password  string         `gorm:"not null"                                       json:"-"` // never expose
-	Role      UserRole       `gorm:"type:user_role;default:viewer;not null"         json:"role"`
-	IsActive  bool           `gorm:"default:true;not null"                          json:"is_active"`
+	ID uuid.UUID `gorm:"type:uuid;default:gen_random_uuid();primaryKey" json:"id"`
+
+	Name     string `gorm:"not null"             json:"name"`
+	Email    string `gorm:"uniqueIndex;not null" json:"email"`
+	Password string `gorm:"not null"             json:"-"`
+
+	Role     UserRole `gorm:"type:user_role;default:viewer;not null" json:"role"`
+	IsActive bool     `gorm:"default:true;not null"                  json:"is_active"`
+
 	CreatedAt time.Time      `json:"created_at"`
-	DeletedAt gorm.DeletedAt `gorm:"index"                                          json:"-"`
+	DeletedAt gorm.DeletedAt `gorm:"index" json:"-"`
 }
-
-// // internal/models/user.go
-// package models
-
-// type User struct {
-// 	ID       string
-// 	Name     string
-// 	Email    string
-// 	Password string
-// 	Role     string
-// 	Active   bool
-// }

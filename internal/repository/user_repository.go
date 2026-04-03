@@ -19,11 +19,9 @@ func NewUserRepository(db *gorm.DB) *UserRepository {
 }
 
 func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
-
 	if user == nil {
 		return errors.New("user is nil")
 	}
-
 	return r.db.WithContext(ctx).
 		Table("users").
 		Create(user).Error
@@ -31,43 +29,34 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
-
 	err := r.db.WithContext(ctx).
 		Table("users").
 		Where("id = ?", id).
 		First(&user).Error
-
 	if err != nil {
 		return nil, err
 	}
-
 	return &user, nil
-
 }
 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
-
 	err := r.db.WithContext(ctx).
 		Table("users").
 		Where("email = ? AND deleted_at IS NULL", email).
 		First(&user).Error
-
 	if err != nil {
 		return nil, err
 	}
-
 	return &user, nil
 }
 
 func (r *UserRepository) List(ctx context.Context) ([]models.User, error) {
 	var users []models.User
-
 	err := r.db.WithContext(ctx).
 		Table("users").
 		Where("deleted_at IS NULL").
 		Find(&users).Error
-
 	return users, err
 }
 
@@ -90,4 +79,13 @@ func (r *UserRepository) UpdateActive(ctx context.Context, userID string, active
 		Table("users").
 		Where("id = ?", userID).
 		Update("is_active", active).Error
+}
+
+func (r *UserRepository) ListByRole(ctx context.Context, role string) ([]models.User, error) {
+	var users []models.User
+	err := r.db.WithContext(ctx).
+		Table("users").
+		Where("role = ? AND deleted_at IS NULL", role).
+		Find(&users).Error
+	return users, err
 }

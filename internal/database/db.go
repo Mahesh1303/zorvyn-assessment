@@ -32,14 +32,13 @@ func Connect(url string, log zerolog.Logger) (*gorm.DB, error) {
 	sqlDB.SetMaxOpenConns(25)
 	sqlDB.SetMaxIdleConns(10)
 	sqlDB.SetConnMaxLifetime(time.Minute * 5)
-	
 
 	log.Info().Msg("database connected")
 	return db, nil
 }
 
 func RunMigrations(url string, log zerolog.Logger) error {
-	m, err := migrate.New("file://./migrations", url)
+	m, err := migrate.New("file://internal/database/migrations", url)
 	if err != nil {
 		return fmt.Errorf("failed to create migrator: %w", err)
 	}

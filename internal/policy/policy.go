@@ -1,7 +1,9 @@
 package policy
 
+import "github.com/google/uuid"
+
 type User struct {
-	ID   string
+	ID   uuid.UUID
 	Role string
 }
 

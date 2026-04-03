@@ -22,8 +22,15 @@ func (m *Middleware) Auth() fiber.Handler {
 				"error": "invalid token",
 			})
 		}
-		// get the payload using jwt
-		userID := token
+
+		claims, err := m.jwt.Verify(token)
+		if err != nil {
+			return c.Status(401).JSON(fiber.Map{
+				"error": "invalid token",
+			})
+		}
+
+		userID := claims.UserID.String()
 
 		user, err := m.userRepo.GetByID(c.Context(), userID)
 		if err != nil || !user.IsActive {
