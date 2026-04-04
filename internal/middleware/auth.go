@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"finance-processing/internal/policy"
 	"strings"
 
 	"github.com/gofiber/fiber/v2"
@@ -38,9 +39,17 @@ func (m *Middleware) Auth() fiber.Handler {
 				"error": "invalid or inactive user",
 			})
 		}
-		uid := user.ID
-		c.Locals("user_id", uid)
-		c.Locals("role", user.Role)
+
+		// Set one canonical actor object for downstream authorization checks.
+		actor := policy.User{
+			ID:   user.ID,
+			Role: string(user.Role),
+		}
+		c.Locals("user", actor)
+
+		// Keep compatibility with handlers that still read individual locals.
+		c.Locals("user_id", actor.ID)
+		c.Locals("role", actor.Role)
 
 		return c.Next()
 	}

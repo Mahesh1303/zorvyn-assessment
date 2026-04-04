@@ -1,11 +1,9 @@
-// internal/services/dashboard_service.go
 package services
 
 import (
 	"context"
 	"errors"
 
-	"finance-processing/internal/models"
 	"finance-processing/internal/policy"
 	"finance-processing/internal/repository"
 )
@@ -18,67 +16,54 @@ func NewDashboardService(r *repository.DashboardRepository) *DashboardService {
 	return &DashboardService{repo: r}
 }
 
-type Summary struct {
-	TotalIncome  float64 `json:"total_income"`
-	TotalExpense float64 `json:"total_expense"`
-	Net          float64 `json:"net"`
+func (s *DashboardService) GetDashboard(
+	ctx context.Context,
+	actor policy.User,
+	filter repository.DashboardFilter,
+	limit int,
+	offset int,
+) (*repository.DashboardData, error) {
+	if !policy.CanViewDashboard(actor) {
+		return nil, errors.New("forbidden: insufficient permissions")
+	}
+	if limit <= 0 || limit > 100 {
+		limit = 10
+	}
+	if offset < 0 {
+		offset = 0
+	}
+	return s.repo.GetDashboard(ctx, filter, limit, offset)
 }
 
 func (s *DashboardService) GetSummary(
 	ctx context.Context,
 	actor policy.User,
-) (*Summary, error) {
-
+	filter repository.DashboardFilter,
+) (*repository.Summary, error) {
 	if !policy.CanViewDashboard(actor) {
-		return nil, errors.New("forbidden")
+		return nil, errors.New("forbidden: insufficient permissions")
 	}
-
-	txs, err := s.repo.GetSummary(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return &Summary{
-		TotalIncome:  txs.TotalIncome,
-		TotalExpense: txs.TotalExpenses,
-		Net:          txs.NetBalance,
-	}, nil
-}
-
-func (s *DashboardService) GetRecent(
-	ctx context.Context,
-	actor policy.User,
-	limit int,
-	offset int,
-) ([]models.Transaction, error) {
-
-	if !policy.CanViewDashboard(actor) {
-		return nil, errors.New("forbidden")
-	}
-
-	return s.repo.GetRecent(ctx, limit, offset)
+	return s.repo.GetSummary(ctx, filter)
 }
 
 func (s *DashboardService) GetCategoryTotals(
 	ctx context.Context,
 	actor policy.User,
-) ([]*repository.CategoryTotal, error) {
-
+	filter repository.DashboardFilter,
+) ([]repository.CategoryTotal, error) {
 	if !policy.CanViewDashboard(actor) {
-		return nil, errors.New("forbidden")
+		return nil, errors.New("forbidden: insufficient permissions")
 	}
-
-	return s.repo.GetCategoryTotals(ctx)
+	return s.repo.GetCategoryTotals(ctx, filter)
 }
 
 func (s *DashboardService) GetMonthlyTrends(
 	ctx context.Context,
 	actor policy.User,
-) ([]*repository.MonthlyTrend, error) {
-
-	if !policy.CanViewAnalytics(actor) {
-		return nil, errors.New("forbidden")
+	filter repository.DashboardFilter,
+) ([]repository.MonthlyTrend, error) {
+	if !policy.CanViewDashboard(actor) {
+		return nil, errors.New("forbidden: insufficient permissions")
 	}
-
-	return s.repo.GetMonthlyTrends(ctx)
+	return s.repo.GetMonthlyTrends(ctx, filter)
 }

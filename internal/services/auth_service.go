@@ -3,6 +3,7 @@ package services
 import (
 	"context"
 	"errors"
+	"fmt"
 
 	auth "finance-processing/internal/lib/utils"
 	"finance-processing/internal/repository"
@@ -23,6 +24,7 @@ func NewAuthService(r *repository.UserRepository, jwt *auth.JWTManager) *AuthSer
 func (s *AuthService) Login(ctx context.Context, email, password string) (string, error) {
 
 	user, err := s.userRepo.GetByEmail(ctx, email)
+	fmt.Print("user is :", user)
 	if err != nil {
 		return "", errors.New("invalid credentials")
 	}

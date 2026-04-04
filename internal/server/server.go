@@ -1,4 +1,4 @@
-package main
+package server
 
 import (
 	"finance-processing/internal/config"
@@ -9,43 +9,65 @@ import (
 	"finance-processing/internal/repository"
 	"finance-processing/internal/routes"
 	"finance-processing/internal/services"
-	"os"
 	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/rs/zerolog"
 )
 
-func main() {
-	app := fiber.New()
-	logger := zerolog.New(os.Stdout).With().Timestamp().Logger()
+type Server struct {
+	app    *fiber.App
+	logger zerolog.Logger
+	config *config.Config
+}
 
+func New(logger zerolog.Logger) (*Server, error) {
+
+	app := fiber.New()
+
+	// Loading config
 	cfg, err := config.LoadConfig()
 	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to load config")
+		return nil, err
 	}
 
-	gormDB, err := database.Connect(cfg.DB.URL, logger)
+	// conneccting to DB
+	db, err := database.Connect(cfg.DB.URL, logger)
 	if err != nil {
-		logger.Fatal().Err(err).Msg("failed to connect database")
+		return nil, err
 	}
 
+	// running Migrations
 	if err := database.RunMigrations(cfg.DB.URL, logger); err != nil {
-		logger.Fatal().Err(err).Msg("migration failed")
+		return nil, err
 	}
 
-	repos := repository.NewRepositories(gormDB)
+	// initializing Repos
+	repos := repository.NewRepositories(db)
+
+	// initializing JWT manager
 	jwtManager := utils.NewJWTManager(cfg.Auth.JWTSecret)
 
+	// initializing  Services
 	svcs := services.NewServices(repos, jwtManager)
+
+	// initializing  Handlers
 	h := handlers.NewHandlers(svcs)
+
+	// initializing middlewares
 	mw := middleware.NewMiddleware(repos.User, jwtManager, logger)
 
+	// initializing the  Routes
 	routes.RegisterRoutes(app, h, mw)
 
-	logger.Info().Msgf("server running on port %d", cfg.App.Port)
+	return &Server{
+		app:    app,
+		logger: logger,
+		config: cfg,
+	}, nil
+}
 
-	if err := app.Listen(":" + strconv.Itoa(cfg.App.Port)); err != nil {
-		logger.Fatal().Err(err).Msg("server failed")
-	}
+func (s *Server) Start() error {
+	s.logger.Info().Msgf("server running on port %d", s.config.App.Port)
+	return s.app.Listen(":" + strconv.Itoa(s.config.App.Port))
 }

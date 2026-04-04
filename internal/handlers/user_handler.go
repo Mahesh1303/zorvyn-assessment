@@ -1,10 +1,12 @@
-// internal/handlers/dashboard_handler.go
 package handlers
 
 import (
+	"errors"
 	"finance-processing/internal/models"
 	"finance-processing/internal/policy"
+	"finance-processing/internal/repository"
 	"finance-processing/internal/services"
+	"strings"
 
 	"github.com/gofiber/fiber/v2"
 )
@@ -17,79 +19,147 @@ func NewUserHandler(s *services.UserService) *UserHandler {
 	return &UserHandler{service: s}
 }
 
+type CreateUserRequest struct {
+	Name     string `json:"name"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
+	Role     string `json:"role"`
+}
+
 func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
-
-	var user models.User
-
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(400).JSON(fiber.Map{
+	var req CreateUserRequest
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
 			"error": "invalid request body",
 		})
 	}
 
-	actor := policy.User{
-		Role: c.Locals("role").(string),
-	}
-
-	// 🔹 Calling  Creating service which is in the UserService
-	if err := h.service.CreateUser(c.Context(), actor, &user); err != nil {
-		return c.Status(403).JSON(fiber.Map{
-			"error": err.Error(),
+	if req.Name == "" || req.Email == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "name, email and password are required",
 		})
 	}
 
-	return c.Status(201).JSON(fiber.Map{
-		"message": "user created successfully",
-	})
+	user := &models.User{
+		Name:     req.Name,
+		Email:    req.Email,
+		Password: req.Password,
+		Role:     models.UserRole(req.Role),
+	}
+
+	actor := c.Locals("user").(policy.User)
+
+	if err := h.service.CreateUser(c.Context(), actor, user); err != nil {
+		if errors.Is(err, repository.ErrUserExists) {
+			return c.Status(fiber.StatusConflict).JSON(fiber.Map{"error": "user already exists"})
+		}
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if strings.Contains(err.Error(), "invalid") {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{"message": "user created successfully"})
 }
 
-// 🔹 Get Summary
 func (h *UserHandler) ChangeRole(c *fiber.Ctx) error {
-
-	type req struct {
-		UserID string `json:"user_id"`
-		Role   string `json:"role"`
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user id is required"})
 	}
 
-	var body req
-
+	var body struct {
+		Role string `json:"role"`
+	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
+	}
+	if body.Role == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "role is required"})
 	}
 
-	actor := policy.User{
-		Role: c.Locals("role").(string),
+	actor := c.Locals("user").(policy.User)
+
+	if err := h.service.ChangeRole(c.Context(), actor, userID, body.Role); err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
 	}
 
-	err := h.service.ChangeRole(c.Context(), actor, body.UserID, body.Role)
-	if err != nil {
-		return c.Status(403).JSON(fiber.Map{"error": err.Error()})
-	}
-
-	return c.JSON(fiber.Map{"message": "role updated"})
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "role updated"})
 }
 
 func (h *UserHandler) SetActive(c *fiber.Ctx) error {
-
-	type req struct {
-		UserID string `json:"user_id"`
-		Active bool   `json:"active"`
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user id is required"})
 	}
 
-	var body req
-
+	var body struct {
+		Active bool `json:"active"`
+	}
 	if err := c.BodyParser(&body); err != nil {
-		return c.Status(400).JSON(fiber.Map{"error": "invalid request"})
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
 	}
 
-	actor := policy.User{
-		Role: c.Locals("role").(string),
+	actor := c.Locals("user").(policy.User)
+
+	if err := h.service.SetActive(c.Context(), actor, userID, body.Active); err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
 	}
 
-	err := h.service.SetActive(c.Context(), actor, body.UserID, body.Active)
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"message": "user status updated"})
+}
+
+func (h *UserHandler) ListUsers(c *fiber.Ctx) error {
+	actor := c.Locals("user").(policy.User)
+
+	users, err := h.service.ListUsers(c.Context(), actor)
 	if err != nil {
-		return c.Status(403).JSON(fiber.Map{"error": err.Error()})
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
 	}
 
-	return c.JSON(fiber.Map{"message": "user status updated"})
+	response := make([]models.UserResponse, len(users))
+	for i, u := range users {
+		response[i] = u.ToResponse()
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": response})
+}
+
+func (h *UserHandler) GetUser(c *fiber.Ctx) error {
+	actor := c.Locals("user").(policy.User)
+	userID := c.Params("id")
+	if userID == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user id is required"})
+	}
+
+	user, err := h.service.GetUser(c.Context(), actor, userID)
+	if err != nil {
+		if strings.Contains(err.Error(), "forbidden") {
+			return c.Status(fiber.StatusForbidden).JSON(fiber.Map{"error": err.Error()})
+		}
+		if errors.Is(err, repository.ErrUserNotFound) {
+			return c.Status(fiber.StatusNotFound).JSON(fiber.Map{"error": "user not found"})
+		}
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{"error": "internal server error"})
+	}
+
+	return c.Status(fiber.StatusOK).JSON(user.ToResponse())
 }

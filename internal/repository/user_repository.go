@@ -1,13 +1,18 @@
-// internal/repository/user_repository.go
 package repository
 
 import (
 	"context"
 	"errors"
+	"strings"
 
 	"finance-processing/internal/models"
 
 	"gorm.io/gorm"
+)
+
+var (
+	ErrUserNotFound = errors.New("user not found")
+	ErrUserExists   = errors.New("user already exists")
 )
 
 type UserRepository struct {
@@ -22,18 +27,24 @@ func (r *UserRepository) Create(ctx context.Context, user *models.User) error {
 	if user == nil {
 		return errors.New("user is nil")
 	}
-	return r.db.WithContext(ctx).
-		Table("users").
-		Create(user).Error
+	err := r.db.WithContext(ctx).Create(user).Error
+	if err != nil {
+		if strings.Contains(err.Error(), "duplicate key") {
+			return ErrUserExists
+		}
+		return err
+	}
+	return nil
 }
 
 func (r *UserRepository) GetByID(ctx context.Context, id string) (*models.User, error) {
 	var user models.User
 	err := r.db.WithContext(ctx).
-		Table("users").
-		Where("id = ?", id).
-		First(&user).Error
+		First(&user, "id = ?", id).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 	return &user, nil
@@ -42,10 +53,11 @@ func (r *UserRepository) GetByID(ctx context.Context, id string) (*models.User, 
 func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.User, error) {
 	var user models.User
 	err := r.db.WithContext(ctx).
-		Table("users").
-		Where("email = ? AND deleted_at IS NULL", email).
-		First(&user).Error
+		First(&user, "email = ?", email).Error
 	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, ErrUserNotFound
+		}
 		return nil, err
 	}
 	return &user, nil
@@ -54,38 +66,56 @@ func (r *UserRepository) GetByEmail(ctx context.Context, email string) (*models.
 func (r *UserRepository) List(ctx context.Context) ([]models.User, error) {
 	var users []models.User
 	err := r.db.WithContext(ctx).
-		Table("users").
-		Where("deleted_at IS NULL").
+		Order("created_at DESC").
 		Find(&users).Error
 	return users, err
-}
-
-func (r *UserRepository) SoftDelete(ctx context.Context, id string) error {
-	return r.db.WithContext(ctx).
-		Table("users").
-		Where("id = ?", id).
-		Update("deleted_at", gorm.Expr("NOW()")).Error
-}
-
-func (r *UserRepository) UpdateRole(ctx context.Context, userID string, role string) error {
-	return r.db.WithContext(ctx).
-		Table("users").
-		Where("id = ?", userID).
-		Update("role", role).Error
-}
-
-func (r *UserRepository) UpdateActive(ctx context.Context, userID string, active bool) error {
-	return r.db.WithContext(ctx).
-		Table("users").
-		Where("id = ?", userID).
-		Update("is_active", active).Error
 }
 
 func (r *UserRepository) ListByRole(ctx context.Context, role string) ([]models.User, error) {
 	var users []models.User
 	err := r.db.WithContext(ctx).
-		Table("users").
-		Where("role = ? AND deleted_at IS NULL", role).
+		Where("role = ?", role).
+		Order("created_at DESC").
 		Find(&users).Error
 	return users, err
+}
+
+func (r *UserRepository) UpdateRole(ctx context.Context, userID string, role string) error {
+	res := r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("role", role)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}
+
+func (r *UserRepository) UpdateActive(ctx context.Context, userID string, active bool) error {
+	res := r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("id = ?", userID).
+		Update("is_active", active)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
+}
+
+func (r *UserRepository) SoftDelete(ctx context.Context, id string) error {
+	res := r.db.WithContext(ctx).
+		Delete(&models.User{}, "id = ?", id)
+	if res.Error != nil {
+		return res.Error
+	}
+	if res.RowsAffected == 0 {
+		return ErrUserNotFound
+	}
+	return nil
 }

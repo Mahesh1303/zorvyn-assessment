@@ -7,6 +7,7 @@ import (
 	"finance-processing/internal/models"
 	"finance-processing/internal/policy"
 	"finance-processing/internal/repository"
+	"fmt"
 )
 
 type UserService struct {
@@ -21,6 +22,7 @@ func (s *UserService) CreateUser(ctx context.Context, actor policy.User, user *m
 	if !policy.CanCreateUser(actor) {
 		return errors.New("forbidden")
 	}
+	fmt.Print("userPassword", user.Password)
 	if user.Password == "" || user.Email == "" {
 		return errors.New("invalid input")
 	}
@@ -61,4 +63,18 @@ func (s *UserService) ListViewers(ctx context.Context, actor policy.User) ([]mod
 		return nil, errors.New("forbidden")
 	}
 	return s.repo.ListByRole(ctx, "viewer")
+}
+
+func (s *UserService) ListUsers(ctx context.Context, actor policy.User) ([]models.User, error) {
+	if !policy.CanManageUsers(actor) {
+		return nil, errors.New("forbidden")
+	}
+	return s.repo.List(ctx)
+}
+
+func (s *UserService) GetUser(ctx context.Context, actor policy.User, userID string) (*models.User, error) {
+	if !policy.CanManageUsers(actor) {
+		return nil, errors.New("forbidden")
+	}
+	return s.repo.GetByID(ctx, userID)
 }

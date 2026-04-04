@@ -50,6 +50,13 @@ func (r *TransactionRepository) ListTransactions(ctx context.Context, filter Rec
 	if filter.To != "" {
 		q = q.Where("date <= ?", filter.To)
 	}
+	if filter.Limit > 0 {
+		q = q.Limit(filter.Limit)
+	}
+	if filter.Offset > 0 {
+		q = q.Offset(filter.Offset)
+	}
+
 	err := q.Order("date desc").Find(&records).Error
 	return records, err
 }
@@ -66,7 +73,6 @@ func (r *TransactionRepository) UpdateTransaction(ctx context.Context, id string
 }
 
 func (r *TransactionRepository) Delete(ctx context.Context, id string) error {
-	// gorm.DeletedAt on the model makes this a soft delete automatically
 	return r.db.WithContext(ctx).
 		Where("id = ?", id).
 		Delete(&models.Transaction{}).Error
