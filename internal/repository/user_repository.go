@@ -119,3 +119,10 @@ func (r *UserRepository) SoftDelete(ctx context.Context, id string) error {
 	}
 	return nil
 }
+
+func (r *UserRepository) CountAdmins(ctx context.Context, count *int64) {
+	r.db.WithContext(ctx).
+		Model(&models.User{}).
+		Where("role = ?", models.RoleAdmin).
+		Count(count)
+}

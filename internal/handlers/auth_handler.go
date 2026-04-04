@@ -21,7 +21,7 @@ type LoginRequest struct {
 	Password string `json:"password"`
 }
 
-func (h *AuthHandler) Login(c *fiber.Ctx) error {
+func (h *AuthHandler) LoginUser(c *fiber.Ctx) error {
 
 	var body LoginRequest
 
@@ -52,5 +52,35 @@ func (h *AuthHandler) Login(c *fiber.Ctx) error {
 
 	return c.JSON(fiber.Map{
 		"access_token": token,
+	})
+}
+
+func (h *AuthHandler) RegisterAdmin(c *fiber.Ctx) error {
+	var req struct {
+		Name     string `json:"name"`
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	if err := c.BodyParser(&req); err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "invalid request body",
+		})
+	}
+
+	if req.Name == "" || req.Email == "" || req.Password == "" {
+		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+			"error": "name, email and password are required",
+		})
+	}
+
+	user, err := h.service.RegisterAdmin(c.Context(), req.Name, req.Email, req.Password)
+	if err != nil {
+		return handleServiceError(c, err)
+	}
+
+	return c.Status(fiber.StatusCreated).JSON(fiber.Map{
+		"message": "admin registered successfully",
+		"data":    user.ToResponse(),
 	})
 }

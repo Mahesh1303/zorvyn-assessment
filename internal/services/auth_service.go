@@ -6,6 +6,7 @@ import (
 	"fmt"
 
 	auth "finance-processing/internal/lib/utils"
+	"finance-processing/internal/models"
 	"finance-processing/internal/repository"
 )
 
@@ -43,4 +44,31 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	}
 
 	return token, nil
+}
+
+func (s *AuthService) RegisterAdmin(ctx context.Context, name, email, password string) (*models.User, error) {
+	var count int64
+	s.userRepo.CountAdmins(ctx, &count)
+	if count > 0 {
+		return nil, errors.New("forbidden: system already initialized")
+	}
+
+	hashed, err := auth.EncryptPassWord(password)
+	if err != nil {
+		return nil, errors.New("failed to process password")
+	}
+
+	user := &models.User{
+		Name:     name,
+		Email:    email,
+		Password: hashed,
+		Role:     models.RoleAdmin,
+		IsActive: true,
+	}
+
+	if err := s.userRepo.Create(ctx, user); err != nil {
+		return nil, err
+	}
+
+	return user, nil
 }
