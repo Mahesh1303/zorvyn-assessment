@@ -84,3 +84,31 @@ func (h *DashboardHandler) GetMonthlyTrends(c *fiber.Ctx) error {
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": trends})
 }
+
+// GET /api/dashboard/recent?limit=10&offset=0
+func (h *DashboardHandler) GetRecent(c *fiber.Ctx) error {
+	actor := c.Locals("user").(policy.User)
+	filter := parseFilter(c)
+	limit, offset, _ := parsePagination(c)
+
+	recent, err := h.service.GetRecent(c.Context(), actor, filter, limit, offset)
+	if err != nil {
+		return handleServiceError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": recent})
+}
+
+// GET /api/dashboard/analytics?from=2026-01-01&to=2026-03-31
+func (h *DashboardHandler) GetAnalytics(c *fiber.Ctx) error {
+	actor := c.Locals("user").(policy.User)
+	filter := parseFilter(c)
+	limit, offset, _ := parsePagination(c)
+
+	data, err := h.service.GetAnalytics(c.Context(), actor, filter, limit, offset)
+	if err != nil {
+		return handleServiceError(c, err)
+	}
+
+	return c.Status(fiber.StatusOK).JSON(fiber.Map{"data": data})
+}

@@ -7,7 +7,6 @@ import (
 	"finance-processing/internal/models"
 	"finance-processing/internal/policy"
 	"finance-processing/internal/repository"
-	"fmt"
 )
 
 type UserService struct {
@@ -22,7 +21,6 @@ func (s *UserService) CreateUser(ctx context.Context, actor policy.User, user *m
 	if !policy.CanCreateUser(actor) {
 		return errors.New("forbidden")
 	}
-	fmt.Print("userPassword", user.Password)
 	if user.Password == "" || user.Email == "" {
 		return errors.New("invalid input")
 	}

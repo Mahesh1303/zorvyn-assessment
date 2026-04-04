@@ -35,7 +35,6 @@ A backend REST API for a finance dashboard system built with Go, Fiber, GORM, an
 ├── internal/
 │   ├── config/                   # env config loading  
 │   ├── database/
-│   │   ├── migrations/           # SQL migration files
 │   │   └── db.go                 # db connection + migrations
 │   ├── handlers/                 # HTTP request handlers
 │   ├── middleware/               # JWT auth + logging
@@ -46,6 +45,7 @@ A backend REST API for a finance dashboard system built with Go, Fiber, GORM, an
 │   ├── seed/                     # seed logic
 │   ├── server/                   # server wiring
 │   └── services/                 # business logic
+├── migrations/
 ├── docker-compose.yml
 ├── Makefile
 └── .env.example
@@ -54,7 +54,7 @@ A backend REST API for a finance dashboard system built with Go, Fiber, GORM, an
 
 
 
-## Docker compose
+## containers
 ```
 ┌─────────────────────────────────────────────────────┐
 │                  docker network                      │
@@ -115,7 +115,7 @@ cd finance-processing
 cp .env.example .env
 ```
 
-Edit `.env` and set `AUTH_JWT_SECRET` to a long random string.
+Edit `.env` and set env variables to your credentials eg`AUTH_JWT_SECRET` to a long random string.
 
 ### 3. Build images
 ```bash
@@ -123,7 +123,7 @@ make build
 ```
 
 ### 4. Start the server
-```bash
+```bashmake dev        # run seeding and server  (no docker)
 make run
 ```
 
@@ -156,18 +156,21 @@ Creates 3 test users and 20 financial records.
 
 ## Common Commands
 ```bash
-make run        # start postgres + server
-make seed       # seed test data
+make up         # start postgres + server
+make seed       # run seed job (docker)
 make build      # build docker images
-make down       # stop everything, keep data
-make down-v     # stop everything, wipe data
-make logs       # tail server logs
-make dev        # run server locally without docker
-make dev-seed   # run seed locally without docker
+make down       # stop containers (keep data)
+make down-v     # stop containers and wipe database
+make logs       # view server logs
+
+make dev        # run seeding and server  (no docker)
 ```
 
 ---
 
+``` bash
+make dev        # run this for complete setup in one command after entering the env
+```
 ## API Reference
 
 All protected endpoints require:

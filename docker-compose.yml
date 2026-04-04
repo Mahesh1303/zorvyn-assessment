@@ -24,7 +24,7 @@ services:
       dockerfile: docker/Dockerfile.server
     container_name: finance_server
     env_file:
-      - docker/.env.docker
+      - .env
     ports:
       - "8080:8080"
     depends_on:
@@ -40,7 +40,7 @@ services:
       dockerfile: docker/Dockerfile.seed
     container_name: finance_seed
     env_file:
-      - docker/.env.docker
+      - .env
     depends_on:
       postgres:
         condition: service_healthy

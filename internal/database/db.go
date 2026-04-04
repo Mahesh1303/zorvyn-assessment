@@ -38,7 +38,7 @@ func Connect(url string, log zerolog.Logger) (*gorm.DB, error) {
 }
 
 func RunMigrations(url string, log zerolog.Logger) error {
-	m, err := migrate.New("file://internal/database/migrations", url)
+	m, err := migrate.New("file://migrations", url)
 	if err != nil {
 		return fmt.Errorf("failed to create migrator: %w", err)
 	}

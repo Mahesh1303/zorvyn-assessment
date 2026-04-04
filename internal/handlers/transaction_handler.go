@@ -6,7 +6,6 @@ import (
 	"finance-processing/internal/policy"
 	"finance-processing/internal/repository"
 	"finance-processing/internal/services"
-	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -66,7 +65,6 @@ func (h *TransactionHandler) CreateTransaction(c *fiber.Ctx) error {
 	actor := c.Locals("user").(policy.User)
 
 	err = h.service.CreateTransaction(c.Context(), actor, tx)
-	fmt.Println("ERROR:", err)
 	if err != nil {
 		if strings.Contains(err.Error(), "forbidden") {
 			return c.Status(403).JSON(fiber.Map{"error": err.Error()})
@@ -107,9 +105,15 @@ func (h *TransactionHandler) ListTransactions(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid limit parameter"})
 	}
+	if limit <= 0 || limit > 100 {
+		limit = 10
+	}
 	offset, err := strconv.Atoi(c.Query("offset", "0"))
 	if err != nil {
 		return c.Status(400).JSON(fiber.Map{"error": "invalid offset parameter"})
+	}
+	if offset < 0 {
+		offset = 0
 	}
 
 	filter := repository.RecordFilter{
