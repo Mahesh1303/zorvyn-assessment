@@ -12,6 +12,7 @@ func DashboardRoutes(api fiber.Router, h *handlers.Handlers) {
 
 	dashboard.Get("/", h.Dashboard.GetDashboard)
 	dashboard.Get("/summary", h.Dashboard.GetSummary)
+	// GET /api/dashboard/categories?type=expense&from=2026-01-01
 	dashboard.Get("/categories", h.Dashboard.GetCategoryTotals)
 	dashboard.Get("/trends", h.Dashboard.GetMonthlyTrends)
 	// Paginated recent activity: GET /api/dashboard/recent?limit=10&offset=0
