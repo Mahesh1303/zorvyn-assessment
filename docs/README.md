@@ -204,6 +204,7 @@ make down-v     # stop containers, wipe database volume
 make logs       # tail server logs
 make dev        # run server locally without docker (seed + server)
 make help       # help
+```
 ---
 
 ## API Docs
