@@ -208,13 +208,25 @@ make help       # help
 
 ## API Docs
 
-Full API documentation is in [`docs/api/`](docs/api/):
+Full API documentation is in [docs/api/](docs/api/).
 
-- [Auth](docs/api/auth.md) — login
-- [Users](docs/api/users.md) — user management (admin only)
-- [Transactions](docs/api/transactions.md) — financial records CRUD + filters
-- [Dashboard](docs/api/dashboard.md) — analytics and summaries
-- [Errors](docs/api/errors.md) — error response reference
+Use this quick index to navigate all endpoint docs:
+
+| Doc File | Covers |
+|---|---|
+| [docs/api/auth.md](docs/api/auth.md) | auth endpoints: register-admin, login, token usage |
+| [docs/api/users.md](docs/api/users.md) | user management endpoints and admin-only operations |
+| [docs/api/transactions.md](docs/api/transactions.md) | transaction create/list/get/update/delete, filters, pagination |
+| [docs/api/dashboard.md](docs/api/dashboard.md) | dashboard aggregate endpoints, recent activity, analytics access |
+| [docs/api/errors.md](docs/api/errors.md) | standardized error response format and status code reference |
+
+Recommended reading order for evaluators:
+
+1. [docs/api/auth.md](docs/api/auth.md)
+2. [docs/api/users.md](docs/api/users.md)
+3. [docs/api/transactions.md](docs/api/transactions.md)
+4. [docs/api/dashboard.md](docs/api/dashboard.md)
+5. [docs/api/errors.md](docs/api/errors.md)
 
 ---
 
