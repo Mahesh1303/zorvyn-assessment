@@ -7,7 +7,7 @@ All endpoints require:
 Authorization: Bearer <token>
 ```
 
-> All authenticated roles can access dashboard endpoints.
+> All authenticated roles can access dashboard endpoints except `/dashboard/analytics`, which is restricted to admin and analyst.
 
 ---
 
@@ -34,10 +34,15 @@ Returns all dashboard data in a single call — summary, category totals, monthl
 ### Examples
 ```
 GET /api/dashboard
-GET /api/dashboard?from=2026-01-01&to=2026-03-31
 GET /api/dashboard?type=expense
+GET /api/dashboard?from=2026-01-01&to=2026-03-31
+GET /api/dashboard/categories?type=expense&type=rent
+GET /api/dashboard/analytics?from=2026-01-01&to=2026-03-31
 GET /api/dashboard?category=rent&category=salary&category=groceries
+GET /api/dashboard/summary?from=2026-01-01&to=2026-03-31&type=expense
 GET /api/dashboard?from=2026-01-01&to=2026-03-31&type=expense&category=rent&limit=5&offset=0
+
+
 ```
 
 ### Response `200`

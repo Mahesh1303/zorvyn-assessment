@@ -22,10 +22,16 @@ func RegisterRoutes(
 		LimiterMiddleware: limiter.SlidingWindow{},
 	}))
 
+	// globaal logging
+	app.Use(mw.Logging())
+
+	// golbal error handling
+	app.Use(mw.ErrorHandler())
+
 	public := app.Group("/")
 
 	public.Get("/health", func(c *fiber.Ctx) error {
-		return c.SendString("OK")
+		return c.SendString("Hello from server")
 	})
 
 	AuthRoutes(app, h)

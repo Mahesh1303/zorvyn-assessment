@@ -45,13 +45,18 @@ func (h *AuthHandler) LoginUser(c *fiber.Ctx) error {
 
 	token, err := h.service.Login(c.Context(), body.Email, body.Password)
 	if err != nil {
+		if err.Error() == "account is inactive" {
+			return c.Status(403).JSON(fiber.Map{
+				"error": "account is inactive",
+			})
+		}
 		return c.Status(401).JSON(fiber.Map{
 			"error": "invalid credentials",
 		})
 	}
 
 	return c.JSON(fiber.Map{
-		"access_token": token,
+		"token": token,
 	})
 }
 

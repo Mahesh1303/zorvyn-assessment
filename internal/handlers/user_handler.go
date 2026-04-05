@@ -47,7 +47,10 @@ func (h *UserHandler) CreateUser(c *fiber.Ctx) error {
 		Role:     models.UserRole(req.Role),
 	}
 
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	if err := h.service.CreateUser(c.Context(), actor, user); err != nil {
 		if errors.Is(err, repository.ErrUserExists) {
@@ -81,7 +84,10 @@ func (h *UserHandler) ChangeRole(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "role is required"})
 	}
 
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	if err := h.service.ChangeRole(c.Context(), actor, userID, body.Role); err != nil {
 		if strings.Contains(err.Error(), "forbidden") {
@@ -109,7 +115,10 @@ func (h *UserHandler) SetActive(c *fiber.Ctx) error {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "invalid request"})
 	}
 
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	if err := h.service.SetActive(c.Context(), actor, userID, body.Active); err != nil {
 		if strings.Contains(err.Error(), "forbidden") {
@@ -125,7 +134,10 @@ func (h *UserHandler) SetActive(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) ListUsers(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	users, err := h.service.ListUsers(c.Context(), actor)
 	if err != nil {
@@ -144,7 +156,10 @@ func (h *UserHandler) ListUsers(c *fiber.Ctx) error {
 }
 
 func (h *UserHandler) GetUser(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 	userID := c.Params("id")
 	if userID == "" {
 		return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{"error": "user id is required"})

@@ -8,7 +8,7 @@ A backend REST API for a finance dashboard system built with Go. Supports role-b
 
 | Layer | Technology |
 |---|---|
-| Language | Go 1.23 |
+| Language | Go 1.26.1 |
 | Framework | Fiber v2 |
 | ORM | GORM |
 | Database | PostgreSQL 16 |
@@ -29,7 +29,6 @@ A backend REST API for a finance dashboard system built with Go. Supports role-b
 ├── docker/
 │   ├── Dockerfile.server
 │   ├── Dockerfile.seed
-│   └── .env.docker
 ├── internal/
 │   ├── config/               # env config loading
 │   ├── database/             # db connection + migrations
@@ -49,6 +48,46 @@ A backend REST API for a finance dashboard system built with Go. Supports role-b
 ├── Makefile
 └── .env.example
 ```
+
+---
+
+## Request Flow Architecture
+
+Each API request follows a layered flow:
+
+`route -> handler -> service -> repository`
+
+- `routes` map HTTP endpoints to handler functions
+- `handlers` parse/validate request input and build HTTP responses
+- `services` enforce business rules and role/policy checks
+- `repositories` run GORM queries against PostgreSQL
+
+This separation keeps transport logic, business logic, and data access cleanly isolated.
+
+---
+
+## Middleware And Security
+
+The app applies middleware in this order:
+
+1. `Rate Limiter` (global): sliding window, max `20` requests per `30s`
+2. `Logging` (global): logs request `method`, `path`, `status`, and `latency`
+3. `Error Handler` (global): converts unhandled errors into JSON responses
+4. `Auth` (for `/api/*`): validates Bearer JWT and injects user context
+
+Route protection:
+
+- Public routes: `/health`, `/auth/login`, `/auth/register-admin`
+- Protected routes: all `/api/*` endpoints
+
+---
+
+## Operational Defaults
+
+- Pagination defaults: `limit=10`, `offset=0`
+- Pagination bounds: `limit` max `100`, `offset` cannot be negative
+- JWT token expiry: `24 hours`
+- Database migrations run automatically when the server starts
 
 ---
 
@@ -93,14 +132,14 @@ A backend REST API for a finance dashboard system built with Go. Supports role-b
 
 ## Getting Started
 
-### Prerequisites
+### Docker based
 
 - Docker and Docker Compose installed
 
 ### 1. Clone the repo
 ```bash
-git clone https://github.com/yourusername/finance-processing.git
-cd finance-processing
+git clone https://github.com/Mahesh1303/zorvyn-assessment.git
+cd zorvyn-assessment
 ```
 
 ### 2. Set up environment
@@ -121,7 +160,7 @@ Migrations run automatically on first start.
 ### 4. Verify
 ```bash
 curl http://localhost:8080/health
-# {"status":"ok"}
+# {"status":"Hello from server"}
 ```
 
 ### 5. Seed test data
@@ -133,11 +172,12 @@ Creates 3 test users and 20 financial records across different categories and da
 
 ---
 
+
+
 ## Without Docker (local dev)
 ```bash
 # make sure postgres is running locally and .env has correct DB_URL
-make dev        # runs server locally
-make dev-seed   # seeds database locally
+make dev        # runs server locally It runs seed first and then server
 ```
 
 ---
@@ -162,7 +202,7 @@ make seed       # run seed container (test data)
 make down       # stop containers, keep database volume
 make down-v     # stop containers, wipe database volume
 make logs       # tail server logs
-make dev        # run server locally without docker
+make dev        # run server locally without docker (seed + server)
 make help       # help
 ---
 
@@ -223,7 +263,6 @@ Full API documentation is in [`docs/api/`](docs/api/):
 ## What Could Be Added
 
 - **Natural language queries** — `POST /api/dashboard/ask` accepting `{"query": "show me rent expenses from last quarter"}` — the Claude API would parse the intent and map it to the existing dashboard filter system automatically
-- Pagination on transaction listing
 - CSV export for records
 - Unit and integration tests
 - Email alerts on large transactions

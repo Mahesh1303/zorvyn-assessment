@@ -16,8 +16,7 @@ func (m *Middleware) Logging() fiber.Handler {
 			Str("method", c.Method()).
 			Str("path", c.Path()).
 			Int("status", c.Response().StatusCode()).
-			Dur("latency", time.Since(start)).
-			Msg("request")
+			Dur("latency", time.Since(start))
 
 		return err
 	}

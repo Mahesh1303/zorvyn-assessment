@@ -36,7 +36,10 @@ func parsePagination(c *fiber.Ctx) (limit int, offset int, err error) {
 }
 
 func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 	filter := parseFilter(c)
 	limit, offset, _ := parsePagination(c)
 
@@ -51,7 +54,10 @@ func (h *DashboardHandler) GetDashboard(c *fiber.Ctx) error {
 // GET /api/dashboard/summary?from=2026-01-01&to=2026-03-31&type=expense
 
 func (h *DashboardHandler) GetSummary(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	summary, err := h.service.GetSummary(c.Context(), actor, parseFilter(c))
 	if err != nil {
@@ -63,7 +69,10 @@ func (h *DashboardHandler) GetSummary(c *fiber.Ctx) error {
 
 // GET /api/dashboard/categories?type=expense&from=2026-01-01
 func (h *DashboardHandler) GetCategoryTotals(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	totals, err := h.service.GetCategoryTotals(c.Context(), actor, parseFilter(c))
 	if err != nil {
@@ -75,7 +84,10 @@ func (h *DashboardHandler) GetCategoryTotals(c *fiber.Ctx) error {
 
 // GET /api/dashboard/trends?from=2026-01-01&category=salary&category=rent
 func (h *DashboardHandler) GetMonthlyTrends(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	trends, err := h.service.GetMonthlyTrends(c.Context(), actor, parseFilter(c))
 	if err != nil {
@@ -87,7 +99,10 @@ func (h *DashboardHandler) GetMonthlyTrends(c *fiber.Ctx) error {
 
 // GET /api/dashboard/recent?limit=10&offset=0
 func (h *DashboardHandler) GetRecent(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 	filter := parseFilter(c)
 	limit, offset, _ := parsePagination(c)
 
@@ -101,7 +116,10 @@ func (h *DashboardHandler) GetRecent(c *fiber.Ctx) error {
 
 // GET /api/dashboard/analytics?from=2026-01-01&to=2026-03-31
 func (h *DashboardHandler) GetAnalytics(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 	filter := parseFilter(c)
 	limit, offset, _ := parsePagination(c)
 

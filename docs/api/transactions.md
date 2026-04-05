@@ -36,16 +36,7 @@ Authorization: Bearer <token>
 ### Response `201`
 ```json
 {
-    "data": {
-        "id": "uuid",
-        "created_by": "uuid",
-        "amount": 5000,
-        "type": "income",
-        "category": "salary",
-        "description": "Monthly salary",
-        "date": "2026-04-01T00:00:00Z",
-        "created_at": "2026-04-05T10:00:00Z"
-    }
+    "message": "transaction created"
 }
 ```
 
@@ -78,6 +69,7 @@ GET /api/transactions?type=expense
 GET /api/transactions?category=salary
 GET /api/transactions?from=2026-01-01&to=2026-03-31
 GET /api/transactions?type=expense&category=rent&from=2026-01-01&to=2026-03-31
+GET /api/transactions?limit=10&offset=0
 ```
 
 ### Response `200`
@@ -95,7 +87,10 @@ GET /api/transactions?type=expense&category=rent&from=2026-01-01&to=2026-03-31
             "created_at": "2026-03-01T10:00:00Z"
         }
     ],
-    "count": 1
+    "meta": {
+        "limit": 10,
+        "offset": 0
+    }
 }
 ```
 
@@ -112,16 +107,14 @@ GET /api/transactions?type=expense&category=rent&from=2026-01-01&to=2026-03-31
 ### Response `200`
 ```json
 {
-    "data": {
-        "id": "uuid",
-        "created_by": "uuid",
-        "amount": 5000,
-        "type": "income",
-        "category": "salary",
-        "description": "Monthly salary",
-        "date": "2026-04-01T00:00:00Z",
-        "created_at": "2026-04-05T10:00:00Z"
-    }
+    "id": "uuid",
+    "created_by": "uuid",
+    "amount": 5000,
+    "type": "income",
+    "category": "salary",
+    "description": "Monthly salary",
+    "date": "2026-04-01T00:00:00Z",
+    "created_at": "2026-04-05T10:00:00Z"
 }
 ```
 
@@ -182,7 +175,7 @@ Marks the transaction as deleted. Data is retained in the database and never per
 ### Response `200`
 ```json
 {
-    "message": "transaction deleted"
+    "message": "deleted"
 }
 ```
 

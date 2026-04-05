@@ -62,7 +62,10 @@ func (h *TransactionHandler) CreateTransaction(c *fiber.Ctx) error {
 		Date:        parsedDate,
 	}
 
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	err = h.service.CreateTransaction(c.Context(), actor, tx)
 	if err != nil {
@@ -82,7 +85,10 @@ func (h *TransactionHandler) CreateTransaction(c *fiber.Ctx) error {
 
 func (h *TransactionHandler) GetTransaction(c *fiber.Ctx) error {
 	id := c.Params("id")
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	tx, err := h.service.GetTransaction(c.Context(), actor, id)
 	if err != nil {
@@ -99,7 +105,10 @@ func (h *TransactionHandler) GetTransaction(c *fiber.Ctx) error {
 }
 
 func (h *TransactionHandler) ListTransactions(c *fiber.Ctx) error {
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	limit, err := strconv.Atoi(c.Query("limit", "10"))
 	if err != nil {
@@ -144,7 +153,10 @@ func (h *TransactionHandler) ListTransactions(c *fiber.Ctx) error {
 
 func (h *TransactionHandler) UpdateTransaction(c *fiber.Ctx) error {
 	id := c.Params("id")
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	var req TransactionUpdateRequest
 	if err := c.BodyParser(&req); err != nil {
@@ -188,7 +200,10 @@ func (h *TransactionHandler) UpdateTransaction(c *fiber.Ctx) error {
 
 func (h *TransactionHandler) DeleteTransaction(c *fiber.Ctx) error {
 	id := c.Params("id")
-	actor := c.Locals("user").(policy.User)
+	actor, ok := c.Locals("user").(policy.User)
+	if !ok {
+		return c.Status(fiber.StatusUnauthorized).JSON(fiber.Map{"error": "invalid user context"})
+	}
 
 	if err := h.service.DeleteTransaction(c.Context(), actor, id); err != nil {
 		if strings.Contains(err.Error(), "forbidden") {

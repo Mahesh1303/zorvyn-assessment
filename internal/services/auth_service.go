@@ -33,7 +33,7 @@ func (s *AuthService) Login(ctx context.Context, email, password string) (string
 	}
 
 	if !user.IsActive {
-		return "", errors.New("invalid credentials")
+		return "", errors.New("account is inactive")
 	}
 
 	token, err := s.jwt.Generate(user.ID, string(user.Role))

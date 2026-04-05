@@ -40,14 +40,13 @@ func (m *Middleware) Auth() fiber.Handler {
 			})
 		}
 
-		// Set one canonical actor object for downstream authorization checks.
+		// setting actor
 		actor := policy.User{
 			ID:   user.ID,
 			Role: string(user.Role),
 		}
 		c.Locals("user", actor)
 
-		// Keep compatibility with handlers that still read individual locals.
 		c.Locals("user_id", actor.ID)
 		c.Locals("role", actor.Role)
 
