@@ -157,16 +157,13 @@ After running `make seed`:
 ## Commands
 ```bash
 make build      # build docker images
-make run        # start postgres + server in background
+make up         # start postgres + server in background
 make seed       # run seed container (test data)
 make down       # stop containers, keep database volume
 make down-v     # stop containers, wipe database volume
 make logs       # tail server logs
-make ps         # show running containers
 make dev        # run server locally without docker
-make dev-seed   # run seed locally without docker
-```
-
+make help       # help
 ---
 
 ## API Docs
